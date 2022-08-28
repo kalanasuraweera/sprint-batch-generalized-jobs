@@ -61,7 +61,7 @@ public class RestGenericReader<T> implements ItemReader<T> {
     void beforeStep(StepExecution stepExecution) {
         ExecutionContext executionContext = stepExecution.getExecutionContext();
         ExecutionContext jobExecutionContext = stepExecution.getJobExecution().getExecutionContext();
-        Resource resource = new FileSystemResource(Objects.requireNonNull(environment.getProperty(jobConfigData.getRestReadToFilePath())));
+        Resource resource = new FileSystemResource(jobConfigData.getRestReadToFilePath());
         //if new job
         executionContext.put(Constants.OFFSET, 1);
         jobExecutionContext.put(Constants.OFFSET, 1);
