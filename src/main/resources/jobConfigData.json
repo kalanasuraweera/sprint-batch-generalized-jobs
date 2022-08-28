@@ -1,0 +1,23 @@
+[
+  {
+    "jobName": "countriesJob",
+    "restReadToFilePath": "/home/ksuraweera/personal_projects/sprint-batch-generalized-jobs/sprint-batch-generalized-jobs/batch_rest_files/countries.json",
+    "restReaderName": "infraTypeReader",
+    "fileItemWriterName": "infraTypeJsonFileItemWriter",
+    "jsonWriteListenerName": "infraTypeJsonWriteListener",
+    "jsonFileReaderName": "infraTypeJsonFileReader",
+    "dbWriterName": "infraTypeDbWriter",
+    "deleteOutdatedTaskletName": "deleteOutdatedInfraTypeTasklet",
+    "saveToDbProcessorName": "saveInfraTypeToDbProcessor",
+    "restResponseClassName": "com.example.batchgeneralize.dto.external.CountriesResponse",
+    "requiresRestCallPagination": false,
+    "baseUrl": "http://localhost:8080/external",
+    "endpointUrl": "/countries",
+    "retries": 3,
+    "retrieveDataToJsonFileStepName": "retrieveInfraTypeToJsonStep",
+    "saveToDbStepName": "infraTypeSaveToDbStep",
+    "mapperMethodName": "TODO",
+    "dbClassName": "TODO",
+    "repositoryBeanName": "CountryRepository"
+  }
+]
