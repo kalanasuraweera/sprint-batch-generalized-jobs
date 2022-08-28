@@ -1,0 +1,16 @@
+{
+  "countries": [
+    {
+      "countryCode": "LKA",
+      "countryName": "Sri Lanka"
+    },
+    {
+      "countryCode": "IND",
+      "countryName": "India"
+    },
+    {
+      "countryCode": "USA",
+      "countryName": "United States of America"
+    }
+  ]
+}
