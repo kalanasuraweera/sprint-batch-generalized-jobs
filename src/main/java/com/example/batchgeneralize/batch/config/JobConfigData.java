@@ -17,7 +17,6 @@ public class JobConfigData {
     private Boolean requiresRestCallPagination;
     private Integer retries;
     private String baseUrl;
-    private Integer bufferSize;
     private String endpointUrl;
     private String retrieveDataToJsonFileStepName;
     private String saveToDbStepName;
