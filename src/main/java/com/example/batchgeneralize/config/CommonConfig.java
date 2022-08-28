@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.List;
 @Configuration
 @EnableTransactionManagement
 @Slf4j
+@EnableAsync
 public class CommonConfig {
     @Bean(name = Constants.METADATA_JOB_CONFIG_DATA_BEAN_NAME)
     public List<JobConfigData> metaDataJobConfigDatas() {
