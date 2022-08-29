@@ -1,7 +1,10 @@
 package com.example.batchgeneralize.batch.job;
 
 import com.example.batchgeneralize.batch.config.JobConfigData;
+import com.example.batchgeneralize.batch.processor.GenericSaveToDbProcessor;
 import com.example.batchgeneralize.batch.reader.RestGenericReader;
+import com.example.batchgeneralize.batch.writer.GenericDbWriter;
+import com.example.batchgeneralize.dto.external.ListResponse;
 import com.example.batchgeneralize.utils.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -9,6 +12,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
@@ -22,6 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
@@ -50,16 +55,24 @@ public class JobDefinition {
 
     private void registerJob(JobConfigData jobConfigData) {
         final Class restResponseClazz;
+        final Class responseListItemClazz;
+        final Class dbClazz;
         try {
             restResponseClazz = Class.forName(jobConfigData.getRestResponseClassName());
+            responseListItemClazz = Class.forName(jobConfigData.getResponseDtoListItemClassName());
+            dbClazz = Class.forName(jobConfigData.getDbClassName());
         } catch (Exception e) {
             log.error("Could not register job - ", e);
             throw new RuntimeException(e);
         }
         applicationContext.registerBean(jobConfigData.getRestReaderName(), ItemReader.class, () -> new RestGenericReader<>(restResponseClazz, jobConfigData, environment));
         applicationContext.registerBean(jobConfigData.getFileItemWriterName(), ItemWriter.class, () -> createJsonFileItemWriter(restResponseClazz, jobConfigData));
+        applicationContext.registerBean(jobConfigData.getJsonFileReaderName(), ItemReader.class, () -> createJsonItemReader(restResponseClazz, jobConfigData));
+        applicationContext.registerBean(jobConfigData.getSaveToDbProcessorName(), ItemProcessor.class, GenericSaveToDbProcessor::new);
+        applicationContext.registerBean(jobConfigData.getDbWriterName(), ItemWriter.class, () -> new GenericDbWriter<>(responseListItemClazz, dbClazz, transactionManager, (JpaRepository) applicationContext.getBean(jobConfigData.getRepositoryBeanName()), jobConfigData));
         Step retrieveDataToJsonFileStep = retrieveDataToJsonFileStep(restResponseClazz, jobConfigData, (ItemReader) applicationContext.getBean(jobConfigData.getRestReaderName()), (ItemWriter) applicationContext.getBean(jobConfigData.getFileItemWriterName()));
-        applicationContext.registerBean(jobConfigData.getJobName(), Job.class, () -> createJob(jobConfigData, retrieveDataToJsonFileStep));
+        Step saveToDbStep = saveToDbStep(jobConfigData, (ItemReader) applicationContext.getBean(jobConfigData.getJsonFileReaderName()), (ItemWriter) applicationContext.getBean(jobConfigData.getDbWriterName()), (ItemProcessor) applicationContext.getBean(jobConfigData.getSaveToDbProcessorName()));
+        applicationContext.registerBean(jobConfigData.getJobName(), Job.class, () -> createJob(jobConfigData, retrieveDataToJsonFileStep, saveToDbStep));
         log.info("Job {} has been registered successfully", jobConfigData.getJobName());
     }
 
@@ -83,7 +96,11 @@ public class JobDefinition {
         return stepBuilderFactory.get(jobConfigData.getRetrieveDataToJsonFileStepName()).<T, T>chunk(2).reader(reader).writer(writer).build();
     }
 
-    private Job createJob(JobConfigData jobConfigData, Step retrieveDataToJsonFileStep) {
-        return jobBuilderFactory.get(jobConfigData.getJobName()).incrementer(new RunIdIncrementer()).flow(retrieveDataToJsonFileStep).end().build();
+    private <X extends ListResponse<Y>, Y> Step saveToDbStep(JobConfigData jobConfigData, ItemReader<X> itemReader, ItemWriter<List<Y>> itemWriter, ItemProcessor<X, List<Y>> processor) {
+        return stepBuilderFactory.get(jobConfigData.getSaveToDbStepName()).<X, List<Y>>chunk(1).reader(itemReader).processor(processor).writer(itemWriter).build();
+    }
+
+    private Job createJob(JobConfigData jobConfigData, Step retrieveDataToJsonFileStep, Step saveToDbStep) {
+        return jobBuilderFactory.get(jobConfigData.getJobName()).incrementer(new RunIdIncrementer()).flow(retrieveDataToJsonFileStep).next(saveToDbStep).end().build();
     }
 }
