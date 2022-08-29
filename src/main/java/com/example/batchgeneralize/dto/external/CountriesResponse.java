@@ -12,7 +12,12 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CountriesResponse {
+public class CountriesResponse implements ListResponse<CountryItem> {
     @JsonProperty("countries")
     private List<CountryItem> countries;
+
+    @Override
+    public List<CountryItem> getList() {
+        return countries;
+    }
 }
