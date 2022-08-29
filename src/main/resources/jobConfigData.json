@@ -16,7 +16,8 @@
     "retries": 3,
     "retrieveDataToJsonFileStepName": "retrieveCountriesToJsonStep",
     "saveToDbStepName": "countriesSaveToDbStep",
-    "mapperMethodName": "TODO",
+    "mapperMethodName": "mapCountriesListToCountriesResponse",
+    "mapperClassName": "com.example.batchgeneralize.mapper.CountryMapper",
     "dbClassName": "TODO",
     "repositoryBeanName": "CountryRepository"
   }

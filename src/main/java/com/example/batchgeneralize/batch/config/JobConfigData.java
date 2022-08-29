@@ -21,6 +21,7 @@ public class JobConfigData {
     private String retrieveDataToJsonFileStepName;
     private String saveToDbStepName;
     private String saveToDbProcessorName;
+    private String mapperClassName;
     private String mapperMethodName;
     private String dbClassName;
     private String repositoryBeanName;

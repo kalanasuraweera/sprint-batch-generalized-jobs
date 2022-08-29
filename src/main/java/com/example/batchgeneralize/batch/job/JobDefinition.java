@@ -12,8 +12,11 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
+import org.springframework.batch.item.json.JacksonJsonObjectReader;
 import org.springframework.batch.item.json.JsonFileItemWriter;
+import org.springframework.batch.item.json.JsonItemReader;
 import org.springframework.batch.item.json.builder.JsonFileItemWriterBuilder;
+import org.springframework.batch.item.json.builder.JsonItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -65,6 +68,14 @@ public class JobDefinition {
                 .jsonObjectMarshaller(new JacksonJsonObjectMarshaller<>())
                 .resource(new FileSystemResource(jobConfigData.getRestReadToFilePath()))
                 .name(jobConfigData.getFileItemWriterName())
+                .build();
+    }
+
+    private <T> JsonItemReader<T> createJsonItemReader(Class<T> classType, JobConfigData jobConfigData) {
+        return new JsonItemReaderBuilder<T>()
+                .jsonObjectReader(new JacksonJsonObjectReader<>(classType))
+                .resource(new FileSystemResource(jobConfigData.getRestReadToFilePath()))
+                .name(jobConfigData.getJsonFileReaderName())
                 .build();
     }
 
